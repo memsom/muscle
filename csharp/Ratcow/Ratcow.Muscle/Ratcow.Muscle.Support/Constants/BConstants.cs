@@ -1,4 +1,4 @@
-﻿namespace Ratcow.Muscle.Support
+﻿namespace Ratcow.Muscle.Support.Constants
 {
     public static class BConstants
     {

@@ -6,52 +6,75 @@ using Ratcow.Muscle.Support;
 
 namespace Ratcow.Muscle.Message.Legacy
 {
-    using static TypeConstants;
+    using static Support.Constants.TypeConstants;
     using static MessageUtils;
+    using Support.Constants;
 
     /// Represents a single array of like-typed objects
     class MessageField : Flattenable
     {
-        public MessageField(int type)
+        TypeConstants type;
+        int numItems;
+        Array payload;
+
+        public MessageField(TypeConstants type)
         {
-            _type = type;
+            this.type = type;
         }
-        public int Size()
+        public int Size
         {
-            return _numItems;
+            get
+            {
+                return numItems;
+            }
         }
-        public object GetData()
+        public object Data
         {
-            return _payload;
+            get
+            {
+                return payload;
+            }
         }
+
         public override bool IsFixedSize
         {
-           get { return false; }
+            get
+            {
+                return false;
+            }
         }
-        public override int TypeCode
+        public override TypeConstants TypeCode
         {
-            get{ return _type; }
+            get
+            {
+                return type;
+            }
         }
 
         /** Returns the number of bytes in a single flattened item, or 0 if our items are variable-size */
         public int FlattenedItemSize()
         {
-            switch (_type)
+            switch (type)
             {
                 case B_BOOL_TYPE:
                 case B_INT8_TYPE:
-                    return 1;
+                    return sizeof(byte); //1
+
                 case B_INT16_TYPE:
-                    return 2;
+                    return sizeof(Int16); //2
+
                 case B_FLOAT_TYPE:
                 case B_INT32_TYPE:
-                    return 4;
+                    return sizeof(Int32); //4
+
                 case B_INT64_TYPE:
                 case B_DOUBLE_TYPE:
                 case B_POINT_TYPE:
-                    return 8;
+                    return sizeof(Int64); // 8
+
                 case B_RECT_TYPE:
-                    return 16;
+                    return sizeof(Int64) * 2; //16 (2 * 8)
+
                 default:
                     return 0;
             }
@@ -63,8 +86,8 @@ namespace Ratcow.Muscle.Message.Legacy
         {
             get
             {
-                int ret = 0;
-                switch (_type)
+                var result = 0;
+                switch (type)
                 {
                     case B_BOOL_TYPE:
                     case B_INT8_TYPE:
@@ -75,27 +98,28 @@ namespace Ratcow.Muscle.Message.Legacy
                     case B_DOUBLE_TYPE:
                     case B_POINT_TYPE:
                     case B_RECT_TYPE:
-                        ret += _numItems * FlattenedItemSize();
+                        result += numItems * FlattenedItemSize();
                         break;
+
                     case B_MESSAGE_TYPE:
                         {
                             // there is no number-of-items field for 
                             // B_MESSAGE_TYPE (for historical reasons, sigh)
-                            Message[] array = (Message[])_payload;
-                            for (int i = 0; i < _numItems; i++)
-                                ret += 4 + array[i].FlattenedSize;
+                            for (var i = 0; i < numItems; i++)
+                            {
+                                result += 4 + ((Message[])payload)[i].FlattenedSize;
+                            }
                             // 4 for the size int
                         }
                         break;
 
                     case B_STRING_TYPE:
                         {
-                            ret += 4;  // for the number-of-items field
-                            string[] array = (string[])_payload;
-                            for (int i = 0; i < _numItems; i++)
+                            result += 4;  // for the number-of-items field
+                            for (var i = 0; i < numItems; i++)
                             {
-                                ret += 4;
-                                ret += Encoding.UTF8.GetByteCount(array[i]) + 1;
+                                result += 4;
+                                result += Encoding.UTF8.GetByteCount(((string[])payload)[i]) + 1;
                                 // 4 for the size int, 1 for the nul byte
                             }
                         }
@@ -103,15 +127,16 @@ namespace Ratcow.Muscle.Message.Legacy
 
                     default:
                         {
-                            ret += 4;  // for the number-of-items field
-                            byte[][] array = (byte[][])_payload;
-                            for (int i = 0; i < _numItems; i++)
-                                ret += 4 + array[i].Length;
+                            result += 4;  // for the number-of-items field
+                            for (var i = 0; i < numItems; i++)
+                            {
+                                result += 4 + ((byte[][])payload)[i].Length;
+                            }
                             // 4 for the size int
                         }
                         break;
                 }
-                return ret;
+                return result;
             }
         }
 
@@ -130,94 +155,98 @@ namespace Ratcow.Muscle.Message.Legacy
             {
                 case B_BOOL_TYPE:
                     {
-                        bool[] array = (bool[])_payload;
-                        for (int i = 0; i < _numItems; i++)
-                            writer.Write((byte)(array[i] ? 1 : 0));
+                        for (var i = 0; i < numItems; i++)
+                        {
+                            writer.Write((byte)(((bool[])payload)[i] ? 1 : 0));
+                        }
                     }
                     break;
 
                 case B_INT8_TYPE:
                     {
-                        byte[] array = (byte[])_payload;
-                        writer.Write(array, 0, _numItems);  // wow, easy!
+                        writer.Write((byte[])payload, 0, numItems);  // wow, easy!
                     }
                     break;
 
                 case B_INT16_TYPE:
                     {
-                        short[] array = (short[])_payload;
-                        for (int i = 0; i < _numItems; i++)
-                            writer.Write((short)array[i]);
+                        for (var i = 0; i < numItems; i++)
+                        {
+                            writer.Write((short)((short[])payload)[i]);
+                        }
                     }
                     break;
 
                 case B_FLOAT_TYPE:
                     {
-                        float[] array = (float[])_payload;
-                        for (int i = 0; i < _numItems; i++)
-                            writer.Write((float)array[i]);
+                        for (var i = 0; i < numItems; i++)
+                        {
+                            writer.Write((float)((float[])payload)[i]);
+                        }
                     }
                     break;
 
                 case B_INT32_TYPE:
                     {
-                        int[] array = (int[])_payload;
-                        for (int i = 0; i < _numItems; i++)
-                            writer.Write((int)array[i]);
+                        for (var i = 0; i < numItems; i++)
+                        {
+                            writer.Write((int)((int[])payload)[i]);
+                        }
                     }
                     break;
 
                 case B_INT64_TYPE:
                     {
-                        long[] array = (long[])_payload;
-                        for (int i = 0; i < _numItems; i++)
-                            writer.Write((long)array[i]);
+                        for (var i = 0; i < numItems; i++)
+                        {
+                            writer.Write((long)((long[])payload)[i]);
+                        }
                     }
                     break;
 
                 case B_DOUBLE_TYPE:
                     {
-                        double[] array = (double[])_payload;
-                        for (int i = 0; i < _numItems; i++)
-                            writer.Write((double)array[i]);
+                        for (var i = 0; i < numItems; i++)
+                        {
+                            writer.Write((double)((double[])payload)[i]);
+                        }
                     }
                     break;
 
                 case B_POINT_TYPE:
                     {
-                        Point[] array = (Point[])_payload;
-                        for (int i = 0; i < _numItems; i++)
-                            array[i].Flatten(writer);
+                        for (var i = 0; i < numItems; i++)
+                        {
+                            ((Point[])payload)[i].Flatten(writer);
+                        }
                     }
                     break;
 
                 case B_RECT_TYPE:
                     {
-                        Rect[] array = (Rect[])_payload;
-                        for (int i = 0; i < _numItems; i++)
-                            array[i].Flatten(writer);
+                        for (var i = 0; i < numItems; i++)
+                        {
+                            ((Rect[])payload)[i].Flatten(writer);
+                        }
                     }
                     break;
 
                 case B_MESSAGE_TYPE:
                     {
-                        Message[] array = (Message[])_payload;
-                        for (int i = 0; i < _numItems; i++)
+                        for (var i = 0; i < numItems; i++)
                         {
-                            writer.Write((int)array[i].FlattenedSize);
-                            array[i].Flatten(writer);
+                            writer.Write((int)((Message[])payload)[i].FlattenedSize);
+                            ((Message[])payload)[i].Flatten(writer);
                         }
                     }
                     break;
 
                 case B_STRING_TYPE:
                     {
-                        string[] array = (string[])_payload;
-                        writer.Write((int)_numItems);
-
-                        for (int i = 0; i < _numItems; i++)
+                        writer.Write((int)numItems);
+                        for (int i = 0; i < numItems; i++)
                         {
-                            byte[] utf8Bytes = Encoding.UTF8.GetBytes(array[i]);
+                            byte[] utf8Bytes = Encoding.UTF8.GetBytes(((string[])payload)[i]);
                             writer.Write(utf8Bytes.Length + 1);
                             writer.Write(utf8Bytes);
                             writer.Write((byte)0);  // nul terminator
@@ -227,13 +256,11 @@ namespace Ratcow.Muscle.Message.Legacy
 
                 default:
                     {
-                        byte[][] array = (byte[][])_payload;
-                        writer.Write((int)_numItems);
-
-                        for (int i = 0; i < _numItems; i++)
+                        writer.Write((int)numItems);
+                        for (int i = 0; i < numItems; i++)
                         {
-                            writer.Write(array[i].Length);
-                            writer.Write(array[i]);
+                            writer.Write(((byte[][])payload)[i].Length);
+                            writer.Write(((byte[][])payload)[i]);
                         }
                     }
                     break;
@@ -241,7 +268,7 @@ namespace Ratcow.Muscle.Message.Legacy
         }
 
         /// Returns true iff (code) equals our type code */
-        public override bool AllowsTypeCode(int code)
+        public override bool AllowsTypeCode(TypeConstants code)
         {
             return (code == TypeCode);
         }
@@ -257,159 +284,175 @@ namespace Ratcow.Muscle.Message.Legacy
             int flattenedCount = FlattenedItemSize();
 
             if (flattenedCount > 0)
-                _numItems = numBytes / flattenedCount;
+                numItems = numBytes / flattenedCount;
 
-            switch (_type)
+            switch (type)
             {
                 case B_BOOL_TYPE:
                     {
-                        bool[] array = new bool[_numItems];
-                        for (int i = 0; i < _numItems; i++)
+                        var array = new bool[numItems];
+                        for (var i = 0; i < numItems; i++)
+                        {
                             array[i] = (reader.ReadByte() > 0) ? true : false;
-                        _payload = array;
+                        }
+
+                        payload = array;
                     }
                     break;
 
                 case B_INT8_TYPE:
                     {
-                        byte[] array = reader.ReadBytes(_numItems);
-                        _payload = array;
+                        payload = reader.ReadBytes(numItems);
                     }
                     break;
 
                 case B_INT16_TYPE:
                     {
-                        short[] array = new short[_numItems];
-                        for (int i = 0; i < _numItems; i++)
+                        var array = new short[numItems];
+                        for (var i = 0; i < numItems; i++)
+                        {
                             array[i] = reader.ReadInt16();
-                        _payload = array;
+                        }
+
+                        payload = array;
                     }
                     break;
 
                 case B_FLOAT_TYPE:
                     {
-                        float[] array = new float[_numItems];
-                        for (int i = 0; i < _numItems; i++)
+                        var array = new float[numItems];
+                        for (var i = 0; i < numItems; i++)
+                        {
                             array[i] = reader.ReadSingle();
-                        _payload = array;
+                        }
+
+                        payload = array;
                     }
                     break;
 
                 case B_INT32_TYPE:
                     {
-                        int[] array = new int[_numItems];
-                        for (int i = 0; i < _numItems; i++)
+                        var array = new int[numItems];
+                        for (int i = 0; i < numItems; i++)
+                        {
                             array[i] = reader.ReadInt32();
-                        _payload = array;
+                        }
+
+                        payload = array;
                     }
                     break;
 
                 case B_INT64_TYPE:
                     {
-                        long[] array = new long[_numItems];
-                        for (int i = 0; i < _numItems; i++)
+                        var array = new long[numItems];
+                        for (var i = 0; i < numItems; i++)
+                        {
                             array[i] = reader.ReadInt64();
-                        _payload = array;
+                        }
+
+                        payload = array;
                     }
                     break;
 
                 case B_DOUBLE_TYPE:
                     {
-                        double[] array = new double[_numItems];
-                        for (int i = 0; i < _numItems; i++)
+                        var array = new double[numItems];
+                        for (var i = 0; i < numItems; i++)
+                        {
                             array[i] = reader.ReadDouble();
-                        _payload = array;
+                        }
+
+                        payload = array;
                     }
                     break;
 
                 case B_POINT_TYPE:
                     {
-                        Point[] array = new Point[_numItems];
-                        for (int i = 0; i < _numItems; i++)
+                        var array = new Point[numItems];
+                        for (var i = 0; i < numItems; i++)
                         {
                             Point p = array[i] = new Point();
                             p.Unflatten(reader, p.FlattenedSize);
                         }
-                        _payload = array;
+                        payload = array;
                     }
                     break;
 
                 case B_RECT_TYPE:
                     {
-                        Rect[] array = new Rect[_numItems];
-                        for (int i = 0; i < _numItems; i++)
+                        var array = new Rect[numItems];
+                        for (var i = 0; i < numItems; i++)
                         {
                             Rect r = array[i] = new Rect();
                             r.Unflatten(reader, r.FlattenedSize);
                         }
-                        _payload = array;
+                        payload = array;
                     }
                     break;
 
                 case B_MESSAGE_TYPE:
                     {
-                        ArrayList temp = new ArrayList();
+                        var temp = new ArrayList();
                         while (numBytes > 0)
                         {
-                            Message subMessage = new Message();
-                            int subMessageSize = reader.ReadInt32();
+                            var subMessage = new Message();
+                            var subMessageSize = reader.ReadInt32();
                             subMessage.Unflatten(reader, subMessageSize);
                             temp.Add(subMessage);
                             numBytes -= (subMessageSize + 4);  // 4 for the size int
                         }
-                        _numItems = temp.Count;
-                        Message[] array = new Message[_numItems];
-                        for (int j = 0; j < _numItems; j++)
+                        numItems = temp.Count;
+                        var array = new Message[numItems];
+                        for (var j = 0; j < numItems; j++)
+                        {
                             array[j] = (Message)temp[j];
-                        _payload = array;
+                        }
+
+                        payload = array;
                     }
 
                     break;
 
                 case B_STRING_TYPE:
                     {
-                        Decoder d = Encoding.UTF8.GetDecoder();
+                        var d = Encoding.UTF8.GetDecoder();
 
-                        _numItems = reader.ReadInt32();
-                        string[] array = new string[_numItems];
+                        numItems = reader.ReadInt32();
+                        var array = new string[numItems];
 
                         byte[] byteArray = null;
                         char[] charArray = null;
-                        for (int i = 0; i < _numItems; i++)
+                        for (var i = 0; i < numItems; i++)
                         {
-                            int nextStringLen = reader.ReadInt32();
+                            var nextStringLen = reader.ReadInt32();
                             byteArray = reader.ReadBytes(nextStringLen);
 
-                            int charsRequired = d.GetCharCount(byteArray,
-                                               0,
-                                               nextStringLen);
+                            var charsRequired = d.GetCharCount(byteArray, 0, nextStringLen);
 
                             if (charArray == null || charArray.Length < charsRequired)
+                            {
                                 charArray = new char[charsRequired];
+                            }
 
-                            int charsDecoded = d.GetChars(byteArray,
-                                          0,
-                                          byteArray.Length,
-                                          charArray,
-                                          0);
+                            var charsDecoded = d.GetChars(byteArray, 0, byteArray.Length, charArray, 0);
 
                             array[i] = new string(charArray, 0, charsDecoded - 1);
                         }
-                        _payload = array;
+                        payload = array;
                     }
                     break;
 
                 default:
                     {
-                        _numItems = reader.ReadInt32();
-                        byte[][] array = new byte[_numItems][];
-                        for (int i = 0; i < _numItems; i++)
+                        numItems = reader.ReadInt32();
+                        var array = new byte[numItems][];
+                        for (var i = 0; i < numItems; i++)
                         {
                             int length = reader.ReadInt32();
                             array[i] = new byte[length];
                             array[i] = reader.ReadBytes(length);
                         }
-                        _payload = array;
+                        payload = array;
                     }
                     break;
             }
@@ -418,51 +461,51 @@ namespace Ratcow.Muscle.Message.Legacy
         /// Prints some debug info about our state to (out)
         public override string ToString()
         {
-            string result = "  Type='" + WhatString(_type) + "', " + _numItems + " items: ";
-            int pitems = (_numItems < 10) ? _numItems : 10;
-            switch (_type)
+            var result = $"  Type='{WhatString(type.ToInt32())}', {numItems} items: ";
+            int pitems = (numItems < 10) ? numItems : 10;
+            switch (type)
             {
                 case B_BOOL_TYPE:
                     {
-                        for (int i = 0; i < pitems; i++)
+                        for (var i = 0; i < pitems; i++)
                         {
-                            result += ((((byte[])_payload)[i] != 0) ? "true " : "false ");
+                            result += ((((byte[])payload)[i] != 0) ? "true " : "false ");
                         }
                     }
                     break;
 
                 case B_INT8_TYPE:
                     {
-                        for (int i = 0; i < pitems; i++)
+                        for (var i = 0; i < pitems; i++)
                         {
-                            result += (((byte[])_payload)[i] + " ");
+                            result += (((byte[])payload)[i] + " ");
                         }
                     }
                     break;
 
                 case B_INT16_TYPE:
                     {
-                        for (int i = 0; i < pitems; i++)
+                        for (var i = 0; i < pitems; i++)
                         {
-                            result += (((short[])_payload)[i] + " ");
+                            result += (((short[])payload)[i] + " ");
                         }
                     }
                     break;
 
                 case B_FLOAT_TYPE:
                     {
-                        for (int i = 0; i < pitems; i++)
+                        for (var i = 0; i < pitems; i++)
                         {
-                            result += (((float[])_payload)[i] + " ");
+                            result += (((float[])payload)[i] + " ");
                         }
                     }
                     break;
 
                 case B_INT32_TYPE:
                     {
-                        for (int i = 0; i < pitems; i++)
+                        for (var i = 0; i < pitems; i++)
                         {
-                            result += (((int[])_payload)[i] + " ");
+                            result += (((int[])payload)[i] + " ");
                         }
                     }
                     break;
@@ -471,25 +514,25 @@ namespace Ratcow.Muscle.Message.Legacy
                     {
                         for (int i = 0; i < pitems; i++)
                         {
-                            result += (((long[])_payload)[i] + " ");
+                            result += (((long[])payload)[i] + " ");
                         }
                     }
                     break;
 
                 case B_DOUBLE_TYPE:
                     {
-                        for (int i = 0; i < pitems; i++)
+                        for (var i = 0; i < pitems; i++)
                         {
-                            result += (((double[])_payload)[i] + " ");
+                            result += (((double[])payload)[i] + " ");
                         }
                     }
                     break;
 
                 case B_POINT_TYPE:
                     {
-                        for (int i = 0; i < pitems; i++)
+                        for (var i = 0; i < pitems; i++)
                         {
-                            result += ((Point[])_payload)[i];
+                            result += ((Point[])payload)[i];
                         }
                     }
                     break;
@@ -498,35 +541,35 @@ namespace Ratcow.Muscle.Message.Legacy
                     {
                         for (int i = 0; i < pitems; i++)
                         {
-                            result += ((Rect[])_payload)[i];
+                            result += ((Rect[])payload)[i];
                         }
                     }
                     break;
 
                 case B_MESSAGE_TYPE:
                     {
-                        for (int i = 0; i < pitems; i++)
+                        for (var i = 0; i < pitems; i++)
                         {
-                            result += ("[" + WhatString(((Message[])_payload)[i].What) + ", "
-                                + ((Message[])_payload)[i].CountFields() + " fields] ");
+                            result += ("[" + WhatString(((Message[])payload)[i].What) + ", "
+                                + ((Message[])payload)[i].CountFields() + " fields] ");
                         }
                     }
                     break;
 
                 case B_STRING_TYPE:
                     {
-                        for (int i = 0; i < pitems; i++)
+                        for (var i = 0; i < pitems; i++)
                         {
-                            result += ("[" + ((string[])_payload)[i] + "] ");
+                            result += ("[" + ((string[])payload)[i] + "] ");
                         }
                     }
                     break;
 
                 default:
                     {
-                        for (int i = 0; i < pitems; i++)
+                        for (var i = 0; i < pitems; i++)
                         {
-                            result += ("[" + ((byte[][])_payload)[i].Length + " bytes] ");
+                            result += ("[" + ((byte[][])payload)[i].Length + " bytes] ");
                         }
                     }
                     break;
@@ -538,33 +581,67 @@ namespace Ratcow.Muscle.Message.Legacy
         /// (a bit expensive)
         public override Flattenable Clone()
         {
-            MessageField clone = new MessageField(_type);
+            var clone = new MessageField(type);
             System.Array newArray;  // this will be a copy of our data array
-            switch (_type)
+            switch (type)
             {
-                case B_BOOL_TYPE: newArray = new bool[_numItems]; break;
-                case B_INT8_TYPE: newArray = new byte[_numItems]; break;
-                case B_INT16_TYPE: newArray = new short[_numItems]; break;
-                case B_FLOAT_TYPE: newArray = new float[_numItems]; break;
-                case B_INT32_TYPE: newArray = new int[_numItems]; break;
-                case B_INT64_TYPE: newArray = new long[_numItems]; break;
-                case B_DOUBLE_TYPE: newArray = new double[_numItems]; break;
-                case B_STRING_TYPE: newArray = new string[_numItems]; break;
-                case B_POINT_TYPE: newArray = new Point[_numItems]; break;
-                case B_RECT_TYPE: newArray = new Rect[_numItems]; break;
-                case B_MESSAGE_TYPE: newArray = new Message[_numItems]; break;
-                default: newArray = new byte[_numItems][]; break;
+                case B_BOOL_TYPE:
+                    newArray = new bool[numItems];
+                    break;
+
+                case B_INT8_TYPE:
+                    newArray = new byte[numItems];
+                    break;
+
+                case B_INT16_TYPE:
+                    newArray = new short[numItems];
+                    break;
+                case B_FLOAT_TYPE:
+                    newArray = new float[numItems];
+                    break;
+
+                case B_INT32_TYPE:
+                    newArray = new int[numItems];
+                    break;
+
+                case B_INT64_TYPE:
+                    newArray = new long[numItems];
+                    break;
+
+                case B_DOUBLE_TYPE:
+                    newArray = new double[numItems];
+                    break;
+
+                case B_STRING_TYPE:
+                    newArray = new string[numItems];
+                    break;
+
+                case B_POINT_TYPE:
+                    newArray = new Point[numItems];
+                    break;
+
+                case B_RECT_TYPE:
+                    newArray = new Rect[numItems];
+                    break;
+
+                case B_MESSAGE_TYPE:
+                    newArray = new Message[numItems];
+                    break;
+
+                default:
+                    newArray = new byte[numItems][];
+                    break;
             }
 
-            newArray = (Array)_payload.Clone();
+            newArray = (Array)payload.Clone();
 
             // If the contents of newArray are modifiable, we need to 
             // clone the contents also
-            switch (_type)
+            switch (type)
             {
                 case B_POINT_TYPE:
                     {
-                        for (int i = 0; i < _numItems; i++)
+                        for (int i = 0; i < numItems; i++)
                         {
                             ((Point[])newArray)[i] = (Point)((Point[])newArray)[i].Clone();
                         }
@@ -573,7 +650,7 @@ namespace Ratcow.Muscle.Message.Legacy
 
                 case B_RECT_TYPE:
                     {
-                        for (int i = 0; i < _numItems; i++)
+                        for (int i = 0; i < numItems; i++)
                         {
                             ((Rect[])newArray)[i] = (Rect)((Rect[])newArray)[i].Clone();
                         }
@@ -582,7 +659,7 @@ namespace Ratcow.Muscle.Message.Legacy
 
                 case B_MESSAGE_TYPE:
                     {
-                        for (int i = 0; i < _numItems; i++)
+                        for (int i = 0; i < numItems; i++)
                         {
                             ((Message[])newArray)[i] = (Message)((Message[])newArray)[i].Clone();
                         }
@@ -594,7 +671,7 @@ namespace Ratcow.Muscle.Message.Legacy
                         // Clone the byte arrays, since they are modifiable
                         if (newArray is byte[][] array)
                         {
-                            for (int i = 0; i < _numItems; i++)
+                            for (int i = 0; i < numItems; i++)
                             {
                                 byte[] newBuf = (byte[])array[i].Clone();
                                 array[i] = newBuf;
@@ -604,20 +681,17 @@ namespace Ratcow.Muscle.Message.Legacy
                     break;
             }
 
-            clone.SetPayload(newArray, _numItems);
+            clone.SetPayload(newArray, numItems);
             return clone;
         }
 
         /// Sets our payload and numItems fields.
-        public void SetPayload(System.Array payload, int numItems)
+        public void SetPayload(Array payload, int numItems)
         {
-            _payload = payload;
-            _numItems = numItems;
+            this.payload = payload;
+            this.numItems = numItems;
         }
 
-        private int _type;
-        private int _numItems;
-        private Array _payload;
     }
 }
 

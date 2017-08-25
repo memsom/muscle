@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Ratcow.Muscle.Support
+namespace Ratcow.Muscle.Support.Utils
 {
     using int16 = Int16;
     using int32 = Int32;

@@ -3,7 +3,8 @@ using System.IO;
 
 namespace Ratcow.Muscle.Support
 {
-    using static TypeConstants;
+    using Constants;
+    using static Constants.TypeConstants;
 
     public class Rect : Flattenable
     {
@@ -290,7 +291,7 @@ namespace Ratcow.Muscle.Support
            get { return true; }
         }
 
-        public override int TypeCode
+        public override TypeConstants TypeCode
         {
            get { return B_RECT_TYPE; }
         }
@@ -303,7 +304,7 @@ namespace Ratcow.Muscle.Support
         /// <summary>
         /// Returns true only if code is B_RECT_TYPE.
         /// </summary>
-        public override bool AllowsTypeCode(int code)
+        public override bool AllowsTypeCode(TypeConstants code)
         {
             return (code == B_RECT_TYPE);
         }

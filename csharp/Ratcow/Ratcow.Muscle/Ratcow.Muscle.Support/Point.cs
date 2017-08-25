@@ -3,7 +3,8 @@ using System.IO;
 
 namespace Ratcow.Muscle.Support
 {
-    using static TypeConstants;
+    using Constants;
+    using static Constants.TypeConstants;
 
     public class Point : Flattenable
     {
@@ -66,14 +67,14 @@ namespace Ratcow.Muscle.Support
             return "Point: " + X + " " + Y;
         }
 
-        public Point Add(Point rhs)
+        public Point Add(Point p)
         {
-            return new Point(X + rhs.X, Y + rhs.Y);
+            return new Point(X + p.X, Y + p.Y);
         }
 
-        public Point Subtract(Point rhs)
+        public Point Subtract(Point p)
         {
-            return new Point(X - rhs.X, Y - rhs.Y);
+            return new Point(X - p.X, Y - p.Y);
         }
 
         public void AddToThis(Point p)
@@ -117,7 +118,7 @@ namespace Ratcow.Muscle.Support
         /// <summary>
         /// Returns B_POINT_TYPE.
         /// </summary>
-        public override int TypeCode
+        public override TypeConstants TypeCode
         {
             get { return B_POINT_TYPE; }
         }
@@ -139,7 +140,7 @@ namespace Ratcow.Muscle.Support
         /// <summary> 
         /// Returns true iff (code) is B_POINT_TYPE.
         /// </summary>
-        public override bool AllowsTypeCode(int code)
+        public override bool AllowsTypeCode(TypeConstants code)
         {
             return (code == B_POINT_TYPE);
         }

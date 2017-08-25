@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Ratcow.Muscle.Support.Utils;
 
 namespace Ratcow.Muscle.Support.Tests
 {

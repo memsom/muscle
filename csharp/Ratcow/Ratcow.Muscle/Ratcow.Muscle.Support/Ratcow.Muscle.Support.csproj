@@ -39,15 +39,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BConstants.cs" />
-    <Compile Include="EndianUtils.cs" />
+    <Compile Include="Constants\BConstants.cs" />
+    <Compile Include="Utils\EndianUtils.cs" />
+    <Compile Include="Exceptions\FieldNotFoundException.cs" />
+    <Compile Include="Exceptions\FieldTypeMismatchException.cs" />
     <Compile Include="Flattenable.cs" />
+    <Compile Include="Exceptions\MessageException.cs" />
+    <Compile Include="Interfaces\IFlattenable.cs" />
     <Compile Include="Point.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rect.cs" />
-    <Compile Include="StorageReflectConstants.cs" />
-    <Compile Include="TypeConstants.cs" />
-    <Compile Include="UnflattenFormatException.cs" />
+    <Compile Include="Constants\StorageReflectConstants.cs" />
+    <Compile Include="Constants\TypeConstants.cs" />
+    <Compile Include="Exceptions\UnflattenFormatException.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ratcow.Muscle.Message.Legac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ratcow.Muscle.Message.Tests", "Ratcow.Muscle.Message.Tests\Ratcow.Muscle.Message.Tests.csproj", "{2C8EB1F2-630F-4BD8-B5D3-64267BBA8888}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ratcow.Muscle.Message", "Ratcow.Muscle.Message\Ratcow.Muscle.Message.csproj", "{033FF01E-A387-45A2-B96C-51E8A48E3B3A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{2C8EB1F2-630F-4BD8-B5D3-64267BBA8888}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C8EB1F2-630F-4BD8-B5D3-64267BBA8888}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2C8EB1F2-630F-4BD8-B5D3-64267BBA8888}.Release|Any CPU.Build.0 = Release|Any CPU
+		{033FF01E-A387-45A2-B96C-51E8A48E3B3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{033FF01E-A387-45A2-B96C-51E8A48E3B3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{033FF01E-A387-45A2-B96C-51E8A48E3B3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{033FF01E-A387-45A2-B96C-51E8A48E3B3A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

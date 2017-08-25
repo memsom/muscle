@@ -1,13 +1,17 @@
+
 using System.IO;
 
 namespace Ratcow.Muscle.Support
 {
+    using Interfaces;
+    using Constants;
+
     /// <summary>
     /// Interface for objects that can be flattened and unflattened 
     /// from Be-style byte streams.
     /// </summary>
     ///    
-    public abstract class Flattenable
+    public abstract class Flattenable : IFlattenable
     {
         /// <summary>
         /// Should return true iff every object of this type has a 
@@ -18,7 +22,7 @@ namespace Ratcow.Muscle.Support
         /// <summary>
         /// Should return the type code identifying this type of object.
         /// </summary>
-        public abstract int TypeCode { get; }
+        public abstract TypeConstants TypeCode { get; }
 
         /// <summary>
         /// Should return the number of bytes needed to store this object 
@@ -58,7 +62,7 @@ namespace Ratcow.Muscle.Support
         /// <returns>True iff this object can unflatten from a buffer of 
         /// the given type, false otherwise.</returns>
         ///
-        public abstract bool AllowsTypeCode(int code);
+        public abstract bool AllowsTypeCode(TypeConstants code);
 
         /// <summary> 
         /// Should attempt to restore this object's state from the given buffer.
