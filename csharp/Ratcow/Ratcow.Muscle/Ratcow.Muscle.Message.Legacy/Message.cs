@@ -320,7 +320,7 @@ namespace Ratcow.Muscle.Message.Legacy
         public void SetBoolean(string name, bool val)
         {
             var field = GetCreateOrReplaceField(name, B_BOOL_TYPE);
-            var array = (bool[])field.Data;
+            var array = field.GetData<bool[]>();
             if ((array == null) || (field.Size != 1))
             {
                 array = new bool[1];
@@ -373,9 +373,12 @@ namespace Ratcow.Muscle.Message.Legacy
         public void SetByte(string name, byte val)
         {
             var field = GetCreateOrReplaceField(name, B_INT8_TYPE);
-            var array = (byte[])field.Data;
+            var array = field.GetData<byte[]>();
             if ((array == null) || (field.Size != 1))
+            {
                 array = new byte[1];
+            }
+
             array[0] = val;
             field.SetPayload(array, 1);
         }
@@ -410,7 +413,7 @@ namespace Ratcow.Muscle.Message.Legacy
         public void SetShort(string name, short val)
         {
             var field = GetCreateOrReplaceField(name, B_INT16_TYPE);
-            var array = (short[])field.Data;
+            var array = field.GetData<short[]>();
             if ((array == null) || (field.Size != 1))
             {
                 array = new short[1];
@@ -450,7 +453,7 @@ namespace Ratcow.Muscle.Message.Legacy
         public void SetInt(string name, int val)
         {
             var field = GetCreateOrReplaceField(name, B_INT32_TYPE);
-            var array = (int[])field.Data;
+            var array = field.GetData<int[]>();
             if ((array == null) || (field.Size != 1))
             {
                 array = new int[1];
@@ -502,7 +505,7 @@ namespace Ratcow.Muscle.Message.Legacy
         public void SetLong(string name, long val)
         {
             var field = GetCreateOrReplaceField(name, B_INT64_TYPE);
-            var array = (long[])field.Data;
+            var array = field.GetData< long[]>();
             if ((array == null) || (field.Size != 1))
             {
                 array = new long[1];
@@ -542,7 +545,7 @@ namespace Ratcow.Muscle.Message.Legacy
         public void SetFloat(string name, float val)
         {
             var field = GetCreateOrReplaceField(name, B_FLOAT_TYPE);
-            var array = (float[])field.Data;
+            var array = field.GetData< float[]>();
             if ((array == null) || (field.Size != 1))
             {
                 array = new float[1];
@@ -582,7 +585,7 @@ namespace Ratcow.Muscle.Message.Legacy
         public void SetDouble(string name, double val)
         {
             var field = GetCreateOrReplaceField(name, B_DOUBLE_TYPE);
-            var array = (double[])field.Data;
+            var array = field.GetData<double[]>();
             if ((array == null) || (field.Size != 1))
             {
                 array = new double[1];
@@ -622,7 +625,7 @@ namespace Ratcow.Muscle.Message.Legacy
         public void SetString(string name, string val)
         {
             var field = GetCreateOrReplaceField(name, B_STRING_TYPE);
-            var array = (string[])field.Data;
+            var array = field.GetData< string[]>();
             if ((array == null) || (field.Size != 1))
             {
                 array = new string[1];
@@ -681,7 +684,7 @@ namespace Ratcow.Muscle.Message.Legacy
         public void SetMessage(string name, Message val)
         {
             var field = GetCreateOrReplaceField(name, B_MESSAGE_TYPE);
-            var array = (Message[])field.Data;
+            var array = field.GetData< Message[]>();
             if ((array == null) || (field.Size != 1))
             {
                 array = new Message[1];
@@ -715,7 +718,7 @@ namespace Ratcow.Muscle.Message.Legacy
         public void SetPoint(string name, Point val)
         {
             var field = GetCreateOrReplaceField(name, B_POINT_TYPE);
-            var array = (Point[])field.Data;
+            var array = field.GetData< Point[]>();
             if ((array == null) || (field.Size != 1))
             {
                 array = new Point[1];
@@ -755,7 +758,7 @@ namespace Ratcow.Muscle.Message.Legacy
         public void SetRect(string name, Rect val)
         {
             var field = GetCreateOrReplaceField(name, B_RECT_TYPE);
-            var array = (Rect[])field.Data;
+            var array = field.GetData< Rect[]>();
             if ((array == null) || (field.Size != 1))
             {
                 array = new Rect[1];
@@ -808,7 +811,7 @@ namespace Ratcow.Muscle.Message.Legacy
             var type = val.TypeCode;
             var field = GetCreateOrReplaceField(name, type);
 
-            var payload = field.Data;
+
 
             switch (type)
             {
@@ -816,7 +819,8 @@ namespace Ratcow.Muscle.Message.Legacy
                 // the objects in memory, so we'll just clone them
                 case B_MESSAGE_TYPE:
                     {
-                        var array = ((payload != null) && (((Message[])payload).Length == 1)) ? ((Message[])payload) : new Message[1];
+                        var payload = field.GetData< Message[]>();
+                        var array = ((payload != null) && (payload.Length == 1)) ? payload : new Message[1];
 
                         array[1] = (Message)val.Clone();
                         field.SetPayload(array, 1);
@@ -825,7 +829,8 @@ namespace Ratcow.Muscle.Message.Legacy
 
                 case B_POINT_TYPE:
                     {
-                        var array = ((payload != null) && (((Point[])payload).Length == 1)) ? ((Point[])payload) : new Point[1];
+                        var payload = field.GetData<Point[]>();
+                        var array = ((payload != null) && (payload.Length == 1)) ? payload : new Point[1];
                         array[1] = (Point)val.Clone();
                         field.SetPayload(array, 1);
                     }
@@ -833,7 +838,8 @@ namespace Ratcow.Muscle.Message.Legacy
 
                 case B_RECT_TYPE:
                     {
-                        var array = ((payload != null) && (((Rect[])payload).Length == 1)) ? ((Rect[])payload) : new Rect[1];
+                        var payload = field.GetData<Rect[]>();
+                        var array = ((payload != null) && (payload.Length == 1)) ? payload : new Rect[1];
                         array[1] = (Rect)val.Clone();
                         field.SetPayload(array, 1);
                     }
@@ -842,7 +848,8 @@ namespace Ratcow.Muscle.Message.Legacy
                 // For everything else, we have to store the objects as byte buffers
                 default:
                     {
-                        var array = ((payload != null) && (((byte[][])payload).Length == 1)) ? ((byte[][])payload) : new byte[1][];
+                        var payload = field.GetData<byte[][]>();
+                        var array = ((payload != null) && (payload.Length == 1)) ? payload : new byte[1][];
                         array[0] = FlattenToArray(val, array[0]);
                         field.SetPayload(array, 1);
                     }
@@ -908,7 +915,7 @@ namespace Ratcow.Muscle.Message.Legacy
 
                 default:
                     {
-                        var array = (byte[][])field.Data;
+                        var array = field.GetData< byte[][]>();
                         if ((array == null) || (field.Size != len))
                         {
                             array = new byte[len][];
@@ -934,12 +941,12 @@ namespace Ratcow.Muscle.Message.Legacy
         /// the value held in this field. This object will not be referenced 
         /// by this Message.
         /// </param>
-        public void getFlat(string name, Flattenable returnObject)
+        public void GetFlat(string name, Flattenable returnObject)
         {
             var field = GetField(name);
             if (returnObject.AllowsTypeCode(field.TypeCode))
             {
-                var o = field.Data;
+                var o = field.Payload;
                 if (o is byte[][] b)
                 {
                     UnflattenFromArray(returnObject, b[0]);
@@ -988,11 +995,11 @@ namespace Ratcow.Muscle.Message.Legacy
         ///
         public int GetFlats(string name, Flattenable[] returnObjects)
         {
-            MessageField field = GetField(name);
+            var field = GetField(name);
             if (returnObjects[0].AllowsTypeCode(field.TypeCode))
             {
-                var objs = field.Data;
-                int num;
+                var objs = field.Payload;
+                var num = 0;
                 if (objs is byte[][] bufs)
                 {
                     num = (bufs.Length < returnObjects.Length) ? bufs.Length : returnObjects.Length;
@@ -1052,7 +1059,7 @@ namespace Ratcow.Muscle.Message.Legacy
         {
             CheckByteBuffersOkay(type);
             var field = GetCreateOrReplaceField(name, type);
-            var array = (byte[][])field.Data;
+            var array = field.GetData< byte[][]>();
             if ((array == null) || (field.Size != 1))
             {
                 array = new byte[1][];
@@ -1122,7 +1129,12 @@ namespace Ratcow.Muscle.Message.Legacy
         /// (any type acceptable) with must-be-there semantics
         public object GetData(string name)
         {
-            return GetField(name).Data;
+            return GetField(name).Payload;
+        }
+
+        public T GetData<T>(string name)
+        {
+            return GetField(name).GetData<T>();
         }
 
         /// Gets the data of a field, returns def if any exceptions occur.
@@ -1138,12 +1150,37 @@ namespace Ratcow.Muscle.Message.Legacy
             }
         }
 
+        public T GetData<T>(string name, T def)
+        {
+            try
+            {
+                return GetData<T>(name);
+            }
+            catch (MessageException)
+            {
+                return def;
+            }
+        }
+
         /// Utility method to get the data of a field 
         /// (of a given type, or B_ANY_TYPE) using standard must-be-there 
         /// semantics
         public object GetData(string name, TypeConstants type)
         {
-            return GetField(name, type).Data;
+            return GetField(name, type).Payload;
+        }
+
+        public T GetData<T>(string name, TypeConstants type)
+        {
+            var result = GetField(name, type);
+            if (result != null)
+            {
+                return result.GetData<T>();
+            }
+            else
+            {
+                return default(T);
+            }
         }
 
         /// Removes the specified field and its contents from the Message.  

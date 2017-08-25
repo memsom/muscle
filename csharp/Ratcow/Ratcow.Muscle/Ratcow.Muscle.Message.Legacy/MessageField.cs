@@ -28,12 +28,17 @@ namespace Ratcow.Muscle.Message.Legacy
                 return numItems;
             }
         }
-        public object Data
+        public object Payload
         {
             get
             {
                 return payload;
             }
+        }
+
+        public T GetData<T>()
+        {
+          return (T)((object)payload);            
         }
 
         public override bool IsFixedSize
